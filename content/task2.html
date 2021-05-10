@@ -122,7 +122,7 @@ img.add_border {
                             <li><a href="./../blog/index.html">blog</a></li>
                         </ul>
                       </li>
-                     <li><a href='About.html'>About</a><li><a href='W1.html'>W1</a><li><a href='W2.html'>W2</a><li class='has-children'><a href='修改圖檔.html'>修改圖檔</a><ul class='dropdown'><li><a href='W3繪製零件圖.html'>W3繪製零件圖</a><li><a href='0312修改圖檔.html'>0312修改圖檔</a><li><a href='0313修改圖檔.html'>0313修改圖檔</a></li></ul><li><a href='模擬.html'>模擬</a><li class='has-children'><a href='分組報告.html'>分組報告</a><ul class='dropdown'><li><a href='stage1-bg5.html'>stage1-bg5</a><li><a href='stage2-bg7.html'>stage2-bg7</a></li></ul><li><a href='W5.html'>W5</a><li class='has-children'><a href='W7.html'>W7</a><ul class='dropdown'><li><a href='stage2發球機構圖.html'>stage2發球機構圖</a><li><a href='CoppeliaSim模擬.html'>CoppeliaSim模擬</a></li></ul><li class='has-children'><a href='W8.html'>W8</a><ul class='dropdown'><li><a href='0412模擬(無球).html'>0412模擬(無球)</a><li><a href='0413模擬(有球).html'>0413模擬(有球)</a><li><a href='0415模擬.html'>0415模擬</a><li><a href='0416模擬.html'>0416模擬</a></li></ul><li class='has-children'><a href='W9.html'>W9</a><ul class='dropdown'><li><a href='0422模擬.html'>0422模擬</a></li>
+                     <li><a href='About.html'>About</a><li><a href='W1.html'>W1</a><li><a href='W2.html'>W2</a><li class='has-children'><a href='修改圖檔.html'>修改圖檔</a><ul class='dropdown'><li><a href='W3繪製零件圖.html'>W3繪製零件圖</a><li><a href='0312修改圖檔.html'>0312修改圖檔</a><li><a href='0313修改圖檔.html'>0313修改圖檔</a></li></ul><li class='has-children'><a href='模擬.html'>模擬</a><ul class='dropdown'><li><a href='stage1-bg5-1.html'>stage1-bg5-1</a><li class='has-children'><a href='stage2-bg7-1.html'>stage2-bg7-1</a><ul class='dropdown'><li><a href='0412模擬(無球).html'>0412模擬(無球)</a><li><a href='0413模擬(有球).html'>0413模擬(有球)</a><li><a href='0415模擬.html'>0415模擬</a><li><a href='0416模擬.html'>0416模擬</a><li><a href='0422模擬.html'>0422模擬</a></li></li></ul></ul><li class='has-children'><a href='分組報告.html'>分組報告</a><ul class='dropdown'><li><a href='stage1-bg5-2.html'>stage1-bg5-2</a><li><a href='stage2-bg7-2.html'>stage2-bg7-2</a></li></ul><li><a href='W5.html'>W5</a><li class='has-children'><a href='W7.html'>W7</a><ul class='dropdown'><li><a href='stage2發球機構圖.html'>stage2發球機構圖</a><li><a href='CoppeliaSim模擬.html'>CoppeliaSim模擬</a></li></ul><li class='has-children'><a href='task.html'>task</a><ul class='dropdown'><li><a href='task2.html'>task2</a></li>
                       </ul>
                 </nav>
               </div>
@@ -133,12 +133,67 @@ img.add_border {
           </div>
           
         </header>
-    <div id="tipue_search_content">stage1-bg5 << <a href='stage1-bg5.html'>Previous</a> <a href='W5.html'>Next</a> >> W5<br /><h1>stage2-bg7</h1>
-<p><span>分工部分:編輯網站，繪製SolidWorks零件圖，Coppeliasim模擬。</span></p>
-<p><span></span></p>
-<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/HjaVar6d3Jk" title="YouTube video player" width="560"></iframe></p>
-<p></p>
-<br />stage1-bg5 << <a href='stage1-bg5.html'>Previous</a> <a href='W5.html'>Next</a> >> W5</div>
+    <div id="tipue_search_content">task << <a href='task.html'>Previous</a> <br /><h1>task2</h1>
+<p>參考資料:</p>
+<p>40823246 Task2:<a href="https://40823246.github.io/cd2021/content/task2.html">https://40823246.github.io/cd2021/content/task2.html</a></p>
+<p>MDE Task2:<a href="http://mde.tw/cd2021/content/task2.html">http://mde.tw/cd2021/content/task2.html</a></p>
+<p>while loop說明:<a href="https://blog.csdn.net/geerniya/article/details/77524173">https://blog.csdn.net/geerniya/article/details/77524173</a></p>
+<p>python keyboard:<a href="https://pypi.org/project/keyboard/">https://pypi.org/project/keyboard/</a></p>
+<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/61PJiuaRjeY" title="YouTube video player" width="560"></iframe></p>
+<pre class="brush:py;auto-links:false;toolbar:false" contenteditable="false"># File created by Thibaut Royer, Epitech school
+# thibaut1.royer@epitech.eu
+# It intends to be an example program for the "Two wheels, one arm" educative project.
+
+import sim as vrep
+import math
+import random
+import time
+import keyboard
+
+print ('Start')
+
+# Close eventual old connections
+vrep.simxFinish(-1)
+# Connect to V-REP remote server
+clientID = vrep.simxStart('192.168.0.4', 19997, True, True, 5000, 5)
+
+if clientID != -1:
+    print ('Connected to remote API server')
+    
+    res = vrep.simxAddStatusbarMessage(
+        clientID, "40823218",
+        vrep.simx_opmode_oneshot)
+    if res not in (vrep.simx_return_ok, vrep.simx_return_novalue_flag):
+        print("Could not add a message to the status bar.")
+
+    # Communication operating mode with the remote API : wait for its answer before continuing (blocking mode)
+    # http://www.coppeliarobotics.com/helpFiles/en/remoteApiConstants.htm
+    opmode = vrep.simx_opmode_oneshot_wait
+    STREAMING = vrep.simx_opmode_streaming
+
+    # Try to retrieve motors and robot handlers
+    # http://www.coppeliarobotics.com/helpFiles/en/remoteApiFunctionsPython.htm#simxGetObjectHandle
+    vrep.simxStartSimulation(clientID, opmode)
+    ret,major_handle=vrep.simxGetObjectHandle(clientID,"main_joint",opmode)
+    ret,minor_handle=vrep.simxGetObjectHandle(clientID,"Revolute_joint",opmode)
+    ret,minor2_handle=vrep.simxGetObjectHandle(clientID,"Revolute_joint1",opmode)
+    while True:
+        #Clockwise
+        if keyboard.is_pressed("w"):
+         vrep.simxSetJointTargetVelocity(clientID,major_handle,2,opmode)
+        #anti-Clockwise 
+        if keyboard.is_pressed("s"):
+         vrep.simxSetJointTargetVelocity(clientID,major_handle,-2,opmode)
+        #stop
+        if keyboard.is_pressed ("space"):
+         vrep.simxSetJointTargetVelocity(clientID,major_handle,0,opmode)
+
+
+else:
+    print ('Failed connecting to remote API server')
+    print ('End')
+</pre>
+<p><br/><br/></p><br />task << <a href='task.html'>Previous</a> </div>
         
     <!-- footer -->
       <div class="container">
