@@ -97,6 +97,179 @@
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/AhwFZV0kfcc" title="YouTube video player" width="560"></iframe></p>
 <p>所有模擬檔+STL下載:<a href="https://drive.google.com/file/d/1t_C7udINVkFZDzwG3aTY2GM2_Zf70nkG/view?usp=sharing">https://drive.google.com/file/d/1t_C7udINVkFZDzwG3aTY2GM2_Zf70nkG/view?usp=sharing</a></p>
 <p></p>
+<h2>stage3-bg6</h2>
+<h3>0513</h3>
+<p><span>嘗試用remoteAPI鍵盤控制機械手臂，不過手臂上段模擬時出現甩動問題，因此只展示下半部分。</span></p>
+<p><span></span></p>
+<p><span><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/bXgvrjMNPpQ" title="YouTube video player" width="560"></iframe></span></p>
+<p><span></span></p>
+<p><span>程式碼</span></p>
+<pre class="brush:py;auto-links:false;toolbar:false" contenteditable="false"># File created by Thibaut Royer, Epitech school
+# thibaut1.royer@epitech.eu
+# It intends to be an example program for the "Two wheels, one arm" educative project.
+ 
+import sim as vrep
+import math
+import random
+import time
+import keyboard
+ 
+print ('Start')
+ 
+# Close eventual old connections
+vrep.simxFinish(-1)
+# Connect to V-REP remote server
+clientID = vrep.simxStart('192.168.0.4', 19997, True, True, 5000, 5)
+ 
+if clientID != -1:
+    print ('Connected to remote API server')
+     
+    res = vrep.simxAddStatusbarMessage(
+        clientID, "40823218",
+        vrep.simx_opmode_oneshot)
+    if res not in (vrep.simx_return_ok, vrep.simx_return_novalue_flag):
+        print("Could not add a message to the status bar.")
+ 
+    # Communication operating mode with the remote API : wait for its answer before continuing (blocking mode)
+    # http://www.coppeliarobotics.com/helpFiles/en/remoteApiConstants.htm
+    opmode = vrep.simx_opmode_oneshot_wait
+    STREAMING = vrep.simx_opmode_streaming
+ 
+    # Try to retrieve motors and robot handlers
+    # http://www.coppeliarobotics.com/helpFiles/en/remoteApiFunctionsPython.htm#simxGetObjectHandle
+    vrep.simxStartSimulation(clientID, opmode)
+    ret,base_handle=vrep.simxGetObjectHandle(clientID,"joint1_",opmode)
+    ret,bottom_handle=vrep.simxGetObjectHandle(clientID,"joint2_",opmode)
+    ret,top_handle=vrep.simxGetObjectHandle(clientID,"joint3_",opmode)
+    ret,rotate_handle=vrep.simxGetObjectHandle(clientID,"joint4_",opmode)
+    ret,wrist_handle=vrep.simxGetObjectHandle(clientID,"joint5_",opmode)
+    while True:
+        #Clockwise
+        if keyboard.is_pressed("a"):
+         vrep.simxSetJointTargetVelocity(clientID,base_handle,0.1,opmode)
+        #anti-Clockwise 
+        if keyboard.is_pressed("f"):
+         vrep.simxSetJointTargetVelocity(clientID,base_handle,-0.1,opmode)
+        #bottom_handle up
+        if keyboard.is_pressed ("w"):
+         vrep.simxSetJointTargetVelocity(clientID,bottom_handle,0.1,opmode)
+        #bottom_handle down
+        if keyboard.is_pressed ("s"):
+         vrep.simxSetJointTargetVelocity(clientID,bottom_handle,-0.1,opmode)
+         #top_handle up
+        if keyboard.is_pressed ("e"):
+         vrep.simxSetJointTargetVelocity(clientID,top_handle,0.1,opmode)
+         #top_handle down
+        if keyboard.is_pressed ("d"):
+         vrep.simxSetJointTargetVelocity(clientID,top_handle,-0.1,opmode)
+         #rotate
+        if keyboard.is_pressed ("r"):
+         vrep.simxSetJointTargetVelocity(clientID,rotate_handle,0.1,opmode)
+         #wrist_handle left
+        if keyboard.is_pressed ("j"):
+         vrep.simxSetJointTargetVelocity(clientID,wrist_handle,0.1,opmode)
+         #wrist_handle right
+        if keyboard.is_pressed ("k"):
+         vrep.simxSetJointTargetVelocity(clientID,wrist_handle,-0.1,opmode)
+         #stop
+        if keyboard.is_pressed ("space"):
+         vrep.simxSetJointTargetVelocity(clientID,base_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,bottom_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,top_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,rotate_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,wrist_handle,0,opmode)
+ 
+ 
+else:
+    print ('Failed connecting to remote API server')
+    print ('End')</pre>
+<h3>0517</h3>
+<p><span>經過修改後成功模擬</span></p>
+<p><span>操作前必須安裝<a href="https://pypi.org/project/keyboard/">python keyboard</a></span></p>
+<p><span>檔案下載:<a href="https://drive.google.com/file/d/1FErGMzyfP5MTvf8cLc1Ox2xHJhuDN1XH/view?usp=sharing">https://drive.google.com/file/d/1FErGMzyfP5MTvf8cLc1Ox2xHJhuDN1XH/view?usp=sharing</a></span></p>
+<p></p>
+<p><span><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/U4dX3f4b50s" title="YouTube video player" width="560"></iframe> </span></p>
+<p><span>程式碼</span></p>
+<pre class="brush:py;auto-links:false;toolbar:false" contenteditable="false"># File created by Thibaut Royer, Epitech school
+# thibaut1.royer@epitech.eu
+# It intends to be an example program for the "Two wheels, one arm" educative project.
+  
+import sim as vrep
+import math
+import random
+import time
+import keyboard
+  
+print ('Start')
+  
+# Close eventual old connections
+vrep.simxFinish(-1)
+# Connect to V-REP remote server
+clientID = vrep.simxStart('192.168.0.4', 19997, True, True, 5000, 5)
+  
+if clientID != -1:
+    print ('Connected to remote API server')
+      
+    res = vrep.simxAddStatusbarMessage(
+        clientID, "40823218",
+        vrep.simx_opmode_oneshot)
+    if res not in (vrep.simx_return_ok, vrep.simx_return_novalue_flag):
+        print("Could not add a message to the status bar.")
+  
+    # Communication operating mode with the remote API : wait for its answer before continuing (blocking mode)
+    # http://www.coppeliarobotics.com/helpFiles/en/remoteApiConstants.htm
+    opmode = vrep.simx_opmode_oneshot_wait
+    STREAMING = vrep.simx_opmode_streaming
+  
+    # Try to retrieve motors and robot handlers
+    # http://www.coppeliarobotics.com/helpFiles/en/remoteApiFunctionsPython.htm#simxGetObjectHandle
+    vrep.simxStartSimulation(clientID, opmode)
+    ret,base_handle=vrep.simxGetObjectHandle(clientID,"joint1",opmode)
+    ret,bottom_handle=vrep.simxGetObjectHandle(clientID,"joint2",opmode)
+    ret,top_handle=vrep.simxGetObjectHandle(clientID,"joint3",opmode)
+    ret,rotate_handle=vrep.simxGetObjectHandle(clientID,"joint4",opmode)
+    ret,wrist_handle=vrep.simxGetObjectHandle(clientID,"joint5",opmode)
+    while True:
+        #Clockwise
+        if keyboard.is_pressed("a"):
+         vrep.simxSetJointTargetVelocity(clientID,base_handle,0.2,opmode)
+        #anti-Clockwise 
+        if keyboard.is_pressed("f"):
+         vrep.simxSetJointTargetVelocity(clientID,base_handle,-0.2,opmode)
+        #bottom_handle up
+        if keyboard.is_pressed ("w"):
+         vrep.simxSetJointTargetVelocity(clientID,bottom_handle,0.2,opmode)
+        #bottom_handle down
+        if keyboard.is_pressed ("s"):
+         vrep.simxSetJointTargetVelocity(clientID,bottom_handle,-0.2,opmode)
+         #top_handle up
+        if keyboard.is_pressed ("e"):
+         vrep.simxSetJointTargetVelocity(clientID,top_handle,0.2,opmode)
+         #top_handle down
+        if keyboard.is_pressed ("d"):
+         vrep.simxSetJointTargetVelocity(clientID,top_handle,-0.2,opmode)
+         #rotate
+        if keyboard.is_pressed ("r"):
+         vrep.simxSetJointTargetVelocity(clientID,rotate_handle,0.2,opmode)
+         #wrist_handle left
+        if keyboard.is_pressed ("j"):
+         vrep.simxSetJointTargetVelocity(clientID,wrist_handle,0.2,opmode)
+         #wrist_handle right
+        if keyboard.is_pressed ("k"):
+         vrep.simxSetJointTargetVelocity(clientID,wrist_handle,-0.2,opmode)
+         #stop
+        if keyboard.is_pressed ("space"):
+         vrep.simxSetJointTargetVelocity(clientID,base_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,bottom_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,top_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,rotate_handle,0,opmode)
+         vrep.simxSetJointTargetVelocity(clientID,wrist_handle,0,opmode)
+  
+  
+else:
+    print ('Failed connecting to remote API server')
+    print ('End')
+</pre>
 <h1>分組報告</h1>
 <h2>stage1-bg5</h2>
 <p>分工部分:建立倉儲及架設網站，編輯網站，找尋參考資料，繪製SolidWorks零件圖，Coppeliasim模擬，Reveal製作。</p>
@@ -105,7 +278,7 @@
 <p><span>分工部分:編輯網站，繪製SolidWorks零件圖，Coppeliasim模擬。</span></p>
 <p><span></span></p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/HjaVar6d3Jk" title="YouTube video player" width="560"></iframe></p>
-<p></p>
+<p><span> </span></p>
 <h1>W5</h1>
 <p>2b報告影片時間表</p>
 <p><iframe height="500" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQMzTUFlLLSl_l5gtY4Aw7mNaJaEYZEOxclURC7DIjN5JmkV8FYvwnOF3uMD0oK-MzwzWWuboreM6xm/pubhtml?widget=true&amp;headers=false" width="1000"></iframe></p>
