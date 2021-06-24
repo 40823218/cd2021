@@ -414,9 +414,210 @@ print(output)
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/Gg81oSunGyY" title="YouTube video player" width="560"></iframe></p>
 <p>LUA鍵盤轉動示範</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/-8ewv4jOYz0" title="YouTube video player" width="560"></iframe></p>
-<p>Leo鍵盤控制</p>
+<p>Leo鍵盤控制+吸盤</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/yJLP9NYuRUA" title="YouTube video player" width="560"></iframe></p>
+<pre class="brush:html;auto-links:false;toolbar:false" contenteditable="false">function sysCall_init() 
+    joint=sim.getObjectHandle('Revolute_joint')
+    joint1=sim.getObjectHandle('Revolute_joint0')
+    pjoint=sim.getObjectHandle('Prismatic_joint')
+    suctionPad=sim.getObjectHandle('suctionPad')
+    position=0
+    dig=1
+end
+function sysCall_actuation()
+    message,auxiliaryData=sim.getSimulatorMessage()
+    while message~=-1 do
+        if (message==sim.message_keypress) then
+            print(auxiliaryData[1])
+            if (auxiliaryData[1]==2009) then
+                position=position-dig
+                sim.setJointTargetPosition(joint,position*math.pi/180)
+            end
+            if (auxiliaryData[1]==2010) then
+                position=position+dig
+                sim.setJointTargetPosition(joint,position*math.pi/180)
+            end
+            if (auxiliaryData[1]==2007) then
+                sim.setJointTargetPosition(pjoint,0.14)
+            end
+            if (auxiliaryData[1]==2008) then
+                sim.setJointTargetPosition(pjoint,-0.14)
+            end
+            if (auxiliaryData[1]==100) then
+                position=position+dig
+                sim.setJointTargetPosition(joint1,position*math.pi/180)
+            end
+            if (auxiliaryData[1]==97) then
+                position=position-dig
+                sim.setJointTargetPosition(joint1,position*math.pi/180)
+            end
+            if (auxiliaryData[1]==112) then --press p to deactivate
+sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','false')
+            end
+            if (auxiliaryData[1]==111) then --press o to activate
+sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','true')
+            end
+        end
+        message,auxiliaryData=sim.getSimulatorMessage()
+    end
+end</pre>
+<p>吸盤程式</p>
+<pre class="brush:lua;auto-links:false;toolbar:false" contenteditable="false">function sysCall_init() 
+    s=sim.getObjectHandle('suctionPadSensor')
+    l=sim.getObjectHandle('suctionPadLoopClosureDummy1')
+    l2=sim.getObjectHandle('suctionPadLoopClosureDummy2')
+    b=sim.getObjectHandle('suctionPad')
+    suctionPadLink=sim.getObjectHandle('suctionPadLink')
+
+    infiniteStrength=sim.getScriptSimulationParameter(sim.handle_self,'infiniteStrength')
+    maxPullForce=sim.getScriptSimulationParameter(sim.handle_self,'maxPullForce')
+    maxShearForce=sim.getScriptSimulationParameter(sim.handle_self,'maxShearForce')
+    maxPeelTorque=sim.getScriptSimulationParameter(sim.handle_self,'maxPeelTorque')
+
+    sim.setLinkDummy(l,-1)
+    sim.setObjectParent(l,b,true)
+    m=sim.getObjectMatrix(l2,-1)
+    sim.setObjectMatrix(l,-1,m)
+end
+
+function sysCall_cleanup() 
+--[[
+    sim.setLinkDummy(l,-1)
+    sim.setObjectParent(l,b,true)
+    m=sim.getObjectMatrix(l2,-1)
+    sim.setObjectMatrix(l,-1,m)
+]]--
+end 
+
+function sysCall_sensing() 
+    parent=sim.getObjectParent(l)
+    if (sim.getScriptSimulationParameter(sim.handle_self,'active')==false) then
+        if (parent~=b) then
+            sim.setLinkDummy(l,-1)
+            sim.setObjectParent(l,b,true)
+            m=sim.getObjectMatrix(l2,-1)
+            sim.setObjectMatrix(l,-1,m)
+        end
+    else
+        if (parent==b) then
+            -- Here we want to detect a respondable shape, and then connect to it with a force sensor (via a loop closure dummy dummy link)
+            -- However most respondable shapes are set to "non-detectable", so "sim.readProximitySensor" or similar will not work.
+            -- But "sim.checkProximitySensor" or similar will work (they don't check the "detectable" flags), but we have to go through all shape objects!
+            index=0
+            while true do
+                shape=sim.getObjects(index,sim.object_shape_type)
+                if (shape==-1) then
+                    break
+                end
+                if (shape~=b) and (sim.getObjectInt32Parameter(shape,sim.shapeintparam_respondable)~=0) and (sim.checkProximitySensor(s,shape)==1) then
+                    -- Ok, we found a respondable shape that was detected
+                    -- We connect to that shape:
+                    -- Make sure the two dummies are initially coincident:
+                    sim.setObjectParent(l,b,true)
+                    m=sim.getObjectMatrix(l2,-1)
+                    sim.setObjectMatrix(l,-1,m)
+                    -- Do the connection:
+                    sim.setObjectParent(l,shape,true)
+                    sim.setLinkDummy(l,l2)
+                    break
+                end
+                index=index+1
+            end
+        else
+            -- Here we have an object attached
+            if (infiniteStrength==false) then
+                -- We might have to conditionally beak it apart!
+                result,force,torque=sim.readForceSensor(suctionPadLink) -- Here we read the median value out of 5 values (check the force sensor prop. dialog)
+                if (result&gt;0) then
+                    breakIt=false
+                    if (force[3]&gt;maxPullForce) then breakIt=true end
+                    sf=math.sqrt(force[1]*force[1]+force[2]*force[2])
+                    if (sf&gt;maxShearForce) then breakIt=true end
+                    if (torque[1]&gt;maxPeelTorque) then breakIt=true end
+                    if (torque[2]&gt;maxPeelTorque) then breakIt=true end
+                    if (breakIt) then
+                        -- We break the link:
+                        sim.setLinkDummy(l,-1)
+                        sim.setObjectParent(l,b,true)
+                        m=sim.getObjectMatrix(l2,-1)
+                        sim.setObjectMatrix(l,-1,m)
+                    end
+                end
+            end
+        end
+    end
+    if (sim.getSimulationState()==sim.simulation_advancing_lastbeforestop) then
+        sim.setLinkDummy(l,-1)
+        sim.setObjectParent(l,b,true)
+        m=sim.getObjectMatrix(l2,-1)
+        sim.setObjectMatrix(l,-1,m)
+    end
+end</pre>
 <p>逆向運動學函式</p>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/oY1lToDP7sE" title="YouTube video player" width="560"></iframe></p>
-<p></p>
+<pre class="brush:lua;auto-links:false;toolbar:false" contenteditable="false">function sysCall_init() 
+    joint=sim.getObjectHandle('Revolute_joint')
+    joint1=sim.getObjectHandle('Revolute_joint0')
+    pjoint=sim.getObjectHandle('Prismatic_joint')
+    suctionPad=sim.getObjectHandle('suctionPad')
+    position=0
+    dig=1
+    last_time=1
+
+end
+
+function sysCall_actuation()
+sim.setJointTargetPosition(pjoint,-0.14)
+sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','true')
+        if ((sim.getSimulationTime()-last_time)&gt;2) then
+          sim.setJointTargetPosition(pjoint,0.14)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;4) then
+          sim.setJointTargetPosition(joint,34.05*math.pi/180)
+          sim.setJointTargetPosition(joint1,-90*math.pi/180)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;10) then
+          sim.setJointTargetPosition(pjoint,-0.14)
+          sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','false')
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;12) then
+          sim.setJointTargetPosition(pjoint,0.14)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;14) then
+          sim.setJointTargetPosition(pjoint,-0.14)
+          sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','true')
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;18) then
+          sim.setJointTargetPosition(pjoint,0.14)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;20) then
+          sim.setJointTargetPosition(joint1,61.1*math.pi/180)
+          sim.setJointTargetPosition(joint,77.8*math.pi/180)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;30) then
+          sim.setJointTargetPosition(pjoint,-0.14)
+          sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','false')
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;32) then
+          sim.setJointTargetPosition(pjoint,0.14)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;34) then
+          sim.setJointTargetPosition(pjoint,-0.14)
+          sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','true')
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;36) then
+          sim.setJointTargetPosition(pjoint,0.14)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;38) then
+          sim.setJointTargetPosition(joint1,-90*math.pi/180)
+          sim.setJointTargetPosition(joint,34.05*math.pi/180)
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;48) then
+          sim.setJointTargetPosition(pjoint,-0.14)
+          sim.setScriptSimulationParameter(sim.getScriptAssociatedWithObject(suctionPad),'active','false')
+        end
+        if ((sim.getSimulationTime()-last_time)&gt;50) then
+          sim.setJointTargetPosition(pjoint,0.14)
+        end
+end</pre>
 <p></p>
